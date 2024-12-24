@@ -77,6 +77,7 @@ public class UserService {
 				.loginId(userEntity.getLoginId())
 				.username(userEntity.getUsername())
 				.mobile(userEntity.getMobile())
+				.role(userEntity.getRole())
 				.build();
 	}
 	

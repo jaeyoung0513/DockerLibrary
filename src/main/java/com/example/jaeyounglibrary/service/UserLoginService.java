@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +20,7 @@ public class UserLoginService implements UserDetailsService {
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserEntity user = this.entityRepository.findByLoginId(username)
-				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+		UserEntity user = this.entityRepository.findByLoginId(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 		
 		List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 		grantedAuthorities.add(new SimpleGrantedAuthority(user.getRole()));

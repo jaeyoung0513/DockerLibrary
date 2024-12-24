@@ -14,6 +14,7 @@ public class UserDTO {
 	private String loginId;
 	private String password;
 	private String mobile;
+	private String role;
 	private Integer overdueCount;
 	private Integer currentRentalCount;
 }

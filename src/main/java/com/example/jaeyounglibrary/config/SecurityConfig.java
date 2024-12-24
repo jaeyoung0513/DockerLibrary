@@ -2,9 +2,12 @@ package com.example.jaeyounglibrary.config;
 
 import com.example.jaeyounglibrary.components.CustomAccessDeniedHandler;
 import com.example.jaeyounglibrary.components.CustomAuthenticationEntryPoint;
+import com.example.jaeyounglibrary.components.CustomSucessHandler;
 import com.example.jaeyounglibrary.jwt.JwtFilter;
 import com.example.jaeyounglibrary.jwt.JwtUtil;
 import com.example.jaeyounglibrary.jwt.LoginFilter;
+import com.example.jaeyounglibrary.service.CustomOAuth2UserService;
+import com.example.jaeyounglibrary.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +36,8 @@ public class SecurityConfig {
 	private final JwtUtil jwtUtil;
 	private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 	private final CustomAccessDeniedHandler customAccessDeniedHandler;
+	private final CustomSucessHandler customSucessHandler;
+	private final CustomOAuth2UserService customOauth2UserService;
 	
 	// AuthenticationManager 빈을 생성합니다.
 	@Bean
@@ -57,51 +62,57 @@ public class SecurityConfig {
 	
 	// SecurityFilterChain 빈을 생성하여 보안 필터 체인 구성을 정의합니다.
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		// CSRF 보호 비활성화 및 폼 로그인과 HTTP Basic 인증 비활성화
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
 		http.csrf(csrf -> csrf.disable())
 				.formLogin(formLogin -> formLogin.disable())
 				.httpBasic(httpBasic -> httpBasic.disable())
-				.authorizeHttpRequests(auth ->
-						auth.requestMatchers("/", "/login", "/join", "/reissue", "/validate-loginId/**","/bookList").permitAll() // 특정 경로에 대해 모든 사용자 접근 허용
-								.requestMatchers("/admin").hasRole("ADMIN") // /admin 경로에 대해 관리자 권한 필요
-								.anyRequest().authenticated()); // 그 외의 모든 요청은 인증 필요
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(
+								"/api",
+								"/api/login",
+								"/api/join",
+								"/api/reissue",
+								"/api/validate-loginId/**",
+								"/api/bookList",
+								"/api/oauth2/success").permitAll()
+						.requestMatchers("/api/admin").hasRole("ADMIN")
+						.requestMatchers("/api/rentBook").authenticated() // 인증 필요
+						.anyRequest().authenticated()
+				)
+				.cors(cors -> cors.configurationSource(request -> {
+					CorsConfiguration config = new CorsConfiguration();
+					config.setAllowedOrigins(List.of("http://www.jaeyoung.shop"));
+					config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+					config.setAllowCredentials(true);
+					config.addAllowedHeader("*");
+					config.addExposedHeader("Authorization");
+					return config;
+				}))
+				
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				
+				.addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+				
+				.exceptionHandling(exception -> exception
+						.authenticationEntryPoint(customAuthenticationEntryPoint)
+						.accessDeniedHandler(customAccessDeniedHandler)
+				);
+		http.oauth2Login(oauth2 -> oauth2.userInfoEndpoint((userInfoConfig ->
+						userInfoConfig.userService(this.customOauth2UserService)))
+				.successHandler(this.customSucessHandler));
+		http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), this.jwtUtil),
+				UsernamePasswordAuthenticationFilter.class);
 		
-		// CORS 설정
-		http.cors(cors -> cors.configurationSource(request -> {
-			CorsConfiguration config = new CorsConfiguration();
-			config.setAllowedOrigins(List.of("http://localhost:3000")); // 클라이언트 도메인 설정
-			config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메소드
-			config.setAllowCredentials(true); // 쿠키 포함
-			config.addExposedHeader("Authorization"); // 클라이언트에서 읽을 수 있는 헤더 추가
-			config.addAllowedHeader("*"); // 모든 헤더 허용
-			return config;
-		}));
-		
-		http.logout(logout->logout.logoutUrl("/logout")
+		http.logout(logout->logout.logoutUrl("/api/logout")
 				.logoutSuccessHandler(logoutHandler())
 				.addLogoutHandler((request, response, authentication)->{
 					if(request.getSession()!=null){
 						request.getSession().invalidate();
 					}
-				}).deleteCookies("JSESSIONID"));
+				}).deleteCookies("JSESSIONID","refresh"));
 		
-		// 세션 설정 (Stateful 방식 사용하지 않음)
-		http.sessionManagement(session ->
-				session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		
-		// 인증 필터 설정
-		http.addFilterBefore(new JwtFilter(this.jwtUtil), LoginFilter.class);
-		
-		http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), this.jwtUtil),
-				UsernamePasswordAuthenticationFilter.class);
-		
-		// 예외 처리 핸들러 설정
-		http.exceptionHandling(exception -> {
-			exception.authenticationEntryPoint(this.customAuthenticationEntryPoint);
-			exception.accessDeniedHandler(this.customAccessDeniedHandler);
-		});
-		
-		return http.build(); // 필터 체인 반환
+		return http.build();
 	}
+	
+	
 }

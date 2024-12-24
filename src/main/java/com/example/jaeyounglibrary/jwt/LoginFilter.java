@@ -2,7 +2,6 @@ package com.example.jaeyounglibrary.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,10 +51,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		String role = grantedAuthority.getAuthority();
 		
 		// 액세스 및 리프레시 토큰 생성
-		String accessToken = this.jwtUtil.CreateJWT("access", username, role, 5000L);
-		String refreshToken = this.jwtUtil.CreateJWT("refresh", username, role, 24 * 60 * 60 * 1000L);
+		String accessToken = this.jwtUtil.createJWT("access", username, role, 15 * 60 * 1000L);
+		String refreshToken = this.jwtUtil.createJWT("refresh", username, role, 24 * 60 * 60 * 1000L);
 		
-		// 응답 헤더에 액세스 토큰 추가
 		res.addHeader("Authorization", "Bearer " + accessToken);
 		Cookie refreshCookie = createCookie("refresh", refreshToken);
 		System.out.println("Refresh Cookie: " + refreshCookie.getValue()); // 디버깅 로그
@@ -81,14 +79,19 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		res.getWriter().write(jsonmessage);
 	}
 	
-	// 쿠키 생성 메서드
 	private Cookie createCookie(String key, String value) {
 		Cookie cookie = new Cookie(key, value);
 		cookie.setPath("/");
 		cookie.setHttpOnly(true);
 		cookie.setMaxAge(60 * 60 * 24);
-		cookie.setSecure(false);
+		cookie.setSecure(isSecureEnvironment()); // 배포 환경에서 true 설정
 		return cookie;
 	}
+	
+	// 환경에 따라 Secure 설정 여부 결정
+	private boolean isSecureEnvironment() {
+		return !System.getProperty("env", "local").equals("local");
+	}
+	
 	
 }

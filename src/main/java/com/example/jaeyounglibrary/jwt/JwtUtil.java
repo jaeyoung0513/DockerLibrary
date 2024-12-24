@@ -36,7 +36,7 @@ public class JwtUtil {
 				.parseSignedClaims(token).getPayload().getExpiration().before(new Date());
 	}
 	
-	public String CreateJWT(String category, String username, String role, Long expireMs){
+	public String createJWT(String category, String username, String role, Long expireMs){
 		return Jwts.builder()
 				.claim("category", category)
 				.claim("username", username)
