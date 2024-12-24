@@ -1,0 +1,43 @@
+.header {
+    background-color: #505158; /* 헤더 배경색 */
+    color: white; /* 텍스트 색상 */
+    padding: 16px 24px; /* 상하/좌우 패딩 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+    text-align: center; /* 텍스트 가운데 정렬 */
+}
+
+.title {
+    font-size: 24px; /* 제목 글꼴 크기 */
+    font-weight: bold; /* 글꼴 굵게 */
+    margin: 0; /* 기본 여백 제거 */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 텍스트 그림자 */
+}
+
+.nav {
+    margin-top: 12px; /* 제목과 네비게이션 간 간격 */
+    display: flex; /* 네비게이션 링크를 가로로 정렬 */
+    justify-content: center; /* 가운데 정렬 */
+    gap: 16px; /* 링크 간 간격 */
+}
+
+.nav a{
+    text-decoration: none; /* 밑줄 제거 */
+    color: white; /* 기본 텍스트 색상 */
+    padding: 10px 20px; /* 내부 여백 */
+    background-color: #666463; /* 링크 배경색 */
+    border-radius: 4px; /* 둥근 모서리 */
+    font-size: 16px; /* 글꼴 크기 */
+    font-weight: 500; /* 글꼴 두께 */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* 호버 애니메이션 */
+}
+
+.nav a:active {
+    transform: scale(0.95); /* 클릭 시 축소 효과 */
+}
+
+.logout {
+    background-color: #666463; /* 버튼 배경색 */
+}
+.logout:hover {
+    background-color: #666463;
+}

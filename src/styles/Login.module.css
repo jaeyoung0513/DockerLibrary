@@ -1,0 +1,22 @@
+.container {
+    width: 100%;
+    max-width: 400px; /* 폼의 최대 너비 */
+    margin: 50px auto; /* 화면 가운데 정렬 */
+    padding: 20px; /* 내부 여백 */
+    background-color: #f9f9f9; /* 밝은 배경색 */
+    border: 1px solid #ddd; /* 약한 테두리 */
+    border-radius: 8px; /* 둥근 모서리 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 살짝 그림자 효과 */
+}
+
+.logoImg img {
+    cursor: pointer;
+    margin: 0;
+    height: auto;
+    width: 30px;
+    padding: 0;
+}
+
+.logoImg img:hover {
+    transform: scale(1.01); /* 호버 시 확대 효과 */
+}

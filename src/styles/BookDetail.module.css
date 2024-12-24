@@ -1,0 +1,94 @@
+.container {
+    display: flex;
+    flex-direction: column; /* 요소들을 세로로 배치 */
+    align-items: center; /* 가로 방향 가운데 정렬 */
+    padding: 20px; /* 페이지 여백 */
+    background-color: #f9f9f9; /* 배경색 */
+    min-height: 80vh; /* 화면의 최소 높이 */
+    justify-content: center; /* 세로 방향 가운데 정렬 */
+}
+
+img {
+    max-width: 300px; /* 이미지 최대 너비 */
+    height: auto; /* 비율 유지 */
+    border-radius: 8px; /* 이미지 둥근 모서리 */
+    margin-bottom: 20px; /* 이미지와 텍스트 간 간격 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+}
+
+.title {
+    font-size: 24px; /* 제목 크기 */
+    font-weight: bold; /* 굵은 글씨 */
+    color: #333; /* 어두운 색상 */
+    margin-bottom: 10px; /* 제목과 가격 간 간격 */
+}
+
+.description {
+    font-size: 20px; /* 책 설명 크기 */
+    color: #555; /* 중간 밝기의 텍스트 색상 */
+}
+
+.bookInfo {
+    font-size: 13px; /* 책 정보 크기 */
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-weight:400;
+}
+
+.availableCount {
+    font-size: 13px;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row ; /* 요소들을 가로로 배치 */
+    align-items: center; /* 가로 방향 가운데 정렬 */
+}
+
+
+.editButton {
+    cursor: pointer;
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.editButton:hover {
+    color: #0056b3;
+}
+
+.deleteButton {
+    cursor: pointer;
+    padding: 8px 12px;
+    background-color: #f7c1c6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.deleteButton:hover {
+    background-color: #ffa2a2;
+}
+
+.deleteButton:active {
+    background-color: #bd2130;
+    transform: scale(0.98);
+}
+
+.rentalButton{
+    cursor: pointer;
+    padding: 8px 12px;
+    background-color: #676767;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+.rentalButton:hover {
+    background-color: #202020;
+}
+
+.rentalButton:active {
+    background-color: #bd2130;
+    transform: scale(0.98);
+}
