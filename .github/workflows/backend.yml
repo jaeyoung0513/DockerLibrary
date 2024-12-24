@@ -1,0 +1,68 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - backend # backend 브랜치에 푸시될 때 실행
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. DockerHub 로그인
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 2. Checkout 코드
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 3. MySQL Docker 이미지 빌드 및 푸시
+      - name: Build MySQL Docker image
+        working-directory: dockerdb # dockerdb 폴더로 이동
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dockerdb .
+          
+      - name: Push MySQL Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dockerdb
+
+      # 4. Backend Docker 이미지 빌드 및 푸시
+      - name: Build Backend Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dockerbackend .
+      - name: Push Backend Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dockerbackend
+       
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:          
+      - name: Docker pull and run
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_HOST_IP }}
+          key: ${{ secrets.SSH_KEY }}    
+          script: |
+            if [ "$(sudo docker ps -a -q -f name=dockerdb)" ]; then
+              sudo docker rm -f dockerdb
+            fi
+            if [ "$(sudo docker ps -a -q -f name=dockerbackend)" ]; then
+              sudo docker rm -f dockerbackend
+            fi
+            if [ "$(sudo docker images -q ${{ secrets.DOCKERHUB_USERNAME }}/dockerdb)" ]; then
+              sudo docker rmi -f ${{ secrets.DOCKERHUB_USERNAME }}/dockerdb
+            fi
+            if [ "$(sudo docker images -q ${{ secrets.DOCKERHUB_USERNAME }}/dockerbackend)" ]; then
+              sudo docker rmi -f ${{ secrets.DOCKERHUB_USERNAME }}/dockerbackend
+            fi
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dockerdb
+            sudo docker run -d -p 3308:3306 --name dockerdb -v db_volume:/var/lib/mysql ${{ secrets.DOCKERHUB_USERNAME }}/dockerdb
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dockerbackend
+            sudo docker run -d -p 8080:8080 --name dockerbackend --add-host=host.docker.internal:172.17.0.1 ${{ secrets.DOCKERHUB_USERNAME }}/dockerbackend
