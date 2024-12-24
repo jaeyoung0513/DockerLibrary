@@ -1,0 +1,48 @@
+name: Frontend build and deploy
+
+on:
+  push:
+    branches:
+      - frontend
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:      
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3     
+ 
+      - name: Frontend Dockerfile build
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dockerfrontend .
+      - name: Push Frontend Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dockerfrontend
+
+        
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:          
+      - name: Docker pull and run
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_HOST_IP }}
+          key: ${{ secrets. SSH_KEY }}    
+          script: |          
+            if [ "$(sudo docker ps -a -q -f name=dockerfrontend)" ]; then
+              sudo docker rm -f dockerfrontend
+            fi
+            if [ "$(sudo docker images -q ${{ secrets.DOCKERHUB_USERNAME }}/dockerfrontend)" ]; then
+              sudo docker rmi -f ${{ secrets.DOCKERHUB_USERNAME }}/dockerfrontend
+            fi          
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dockerfrontend         
+            sudo docker run -d -p 80:80 --name dockerfrontend ${{ secrets.DOCKERHUB_USERNAME }}/dockerfrontend
